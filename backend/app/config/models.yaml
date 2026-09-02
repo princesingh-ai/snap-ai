@@ -1,0 +1,7 @@
+models:
+  general:
+    name: "ggml-org/gemma-4-E2B-it-GGUF:Q8_0"
+    role: "general"
+    provider: "llama.cpp"
+    enabled: true
+    
