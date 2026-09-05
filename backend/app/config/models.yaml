@@ -1,7 +1,21 @@
 models:
-  general:
+  coding:
     name: "ggml-org/gemma-4-E2B-it-GGUF:Q8_0"
+    role: "coding"
+    provider: "llama.cpp"
+    enabled: true
+    capabilities:
+      - coding
+      - code_generation
+      - debugging
+
+  general:
+    name: "ggml-org/gemma-3-270m-it-qat-GGUF:Q4_0"
     role: "general"
     provider: "llama.cpp"
     enabled: true
-    
+    capabilities:
+      - general
+      - writing
+      - summarization
+      - document_analysis

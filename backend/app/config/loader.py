@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 
-CONFIG_PATH = Path(__file__).resolve().parent.parent / "models.yaml"
+CONFIG_PATH = Path(__file__).resolve().parent / "models.yaml"
 
 def load_models() -> dict:
     """Load the model configurations from the models.yaml file."""
