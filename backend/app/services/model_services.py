@@ -24,7 +24,6 @@
 #         return await self.llama_client.chat(model=model["name"], messages=messages)
 
 
-
 from app.config.loader import load_models
 from app.inference.llama_client import LlamaClient
 
@@ -41,43 +40,32 @@ class ModelService:
         if model_key not in self.models:
             raise ValueError(
                 f"Unknown model: {model_key}. "
-                f"Available models: {list(self.models.keys())}"
-            )
+                f"Available models: {list(self.models.keys())}")
 
         model = self.models[model_key]
 
         if not model.get("enabled", False):
-            raise ValueError(
-                f"Model '{model_key}' is disabled."
-            )
+            raise ValueError(f"Model '{model_key}' is disabled.")
 
         return model["name"]
 
-    async def chat(
-        self,
-        model_key: str,
-        messages: list[dict],
-    ) -> dict:
+    async def chat(self, model_key: str, messages: list[dict]) -> dict:
 
         model_name = self.get_model_name(model_key)
 
         return await self.llama_client.chat(
             model=model_name,
-            messages=messages,
-        )
+            messages=messages)
 
-    async def chat_stream(
-        self,
+    async def chat_stream(self,
         model_key: str,
         messages: list[dict],
-        request_body: dict,
-    ):
+        request_body: dict):
 
         model_name = self.get_model_name(model_key)
 
         async for chunk in self.llama_client.chat_stream(
             model=model_name,
             messages=messages,
-            request_body=request_body,
-        ):
+            request_body=request_body):
             yield chunk
