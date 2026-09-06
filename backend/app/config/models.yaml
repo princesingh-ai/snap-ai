@@ -19,3 +19,8 @@ models:
       - writing
       - summarization
       - document_analysis
+
+task_analyzer:
+  name: "ggml-org/gemma-4-E2B-it-GGUF:Q8_0"
+  provider: "llama.cpp"
+  enabled: true
