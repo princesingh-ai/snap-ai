@@ -1,6 +1,6 @@
 models:
   coding:
-    name: "ggml-org/gemma-4-E2B-it-GGUF:Q8_0"
+    name: "gemma4-12B"
     role: "coding"
     provider: "llama.cpp"
     enabled: true
@@ -9,8 +9,18 @@ models:
       - code_generation
       - debugging
 
+  reasoning:
+    name: "qwen3-4B"
+    role: "reasoning"
+    provider: "llama.cpp"
+    enabled: true
+    capabilities:
+      - reasoning
+      - problem_solving
+      - analysis
+
   general:
-    name: "ggml-org/gemma-3-270m-it-qat-GGUF:Q4_0"
+    name: "gemma4-E2B"
     role: "general"
     provider: "llama.cpp"
     enabled: true
@@ -21,6 +31,5 @@ models:
       - document_analysis
 
 task_analyzer:
-  name: "ggml-org/gemma-4-E2B-it-GGUF:Q8_0"
+  name: "gemma4-E2B"
   provider: "llama.cpp"
-  enabled: true
