@@ -11,7 +11,7 @@ app = FastAPI(title="snap", description="A simple API for interacting with the L
 
 llama = LlamaClient(base_url="http://localhost:8080")
 model_service = ModelService(llama_client=llama)
-task_analyzer = TaskAnalyzer()
+task_analyzer = TaskAnalyzer(llama_client=llama, model="ggml-org/gemma-4-E2B-it-GGUF:Q8_0")
 model_router = ModelRouter()
 
 class Message(BaseModel):
@@ -33,7 +33,7 @@ async def chat(request: ChatRequest):
     messages = [{"role": message.role,
                  "content": message.content} for message in request.messages]
 
-    task = task_analyzer.analyze(messages)
+    task = await task_analyzer.analyze(messages)
 
     model_key = model_router.route(task)
 
@@ -44,9 +44,7 @@ async def chat(request: ChatRequest):
 async def chat_completions(request: dict):
 
     messages = request.get("messages", [])
-
-    task = task_analyzer.analyze(messages)
-
+    task = await task_analyzer.analyze(messages)
     model_key = model_router.route(task)
 
     print(f"[DEBUG] TASK: {task}")
@@ -56,11 +54,7 @@ async def chat_completions(request: dict):
 
         async def generate():
 
-            async for chunk in model_service.chat_stream(
-                model_key=model_key,
-                messages=messages,
-                request_body=request,
-            ):
+            async for chunk in model_service.chat_stream(model_key=model_key, messages=messages, request_body=request):
                 yield chunk
 
         return StreamingResponse(
@@ -69,11 +63,7 @@ async def chat_completions(request: dict):
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",
-            },
+                "X-Accel-Buffering": "no"}
         )
 
-    return await model_service.chat(
-        model_key=model_key,
-        messages=messages,
-    )
+    return await model_service.chat(model_key=model_key, messages=messages)
