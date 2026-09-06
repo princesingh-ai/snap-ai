@@ -9,9 +9,9 @@ from app.services.model_router import ModelRouter
 
 app = FastAPI(title="snap", description="A simple API for interacting with the LLaMA model", version="1.0.0")
 
-llama = LlamaClient(base_url="http://localhost:8080")
+llama = LlamaClient(base_url="http://100.72.139.99:8080")
 model_service = ModelService(llama_client=llama)
-task_analyzer = TaskAnalyzer(llama_client=llama, model="ggml-org/gemma-4-E2B-it-GGUF:Q8_0")
+task_analyzer = TaskAnalyzer(llama_client=llama, model="gemma4-E2B")
 model_router = ModelRouter()
 
 class Message(BaseModel):
