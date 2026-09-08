@@ -2,12 +2,13 @@ import httpx
 
 from fastapi import FastAPI, Request
 from fastapi.responses import Response, StreamingResponse
+from app.config.settings import settings
 
 
 app = FastAPI()
 
-BACKEND_URL = "http://127.0.0.1:8000"
-LLAMA_URL = "http://100.72.139.99:8080"
+BACKEND_URL = (f"http://{settings.backend_host}:{settings.backend_port}")
+LLAMA_URL = (f"http://{settings.llama_host}:{settings.llama_port}")
 
 
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
