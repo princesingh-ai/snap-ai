@@ -1,13 +1,14 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import Response, StreamingResponse
+from app.config.settings import settings
 import httpx
 
 
 app = FastAPI(title="snap reverse proxy")
 
 
-LLAMA_URL = "http://localhost:8080"
-FASTAPI_URL = "http://localhost:8000"
+LLAMA_URL = (f"http://{settings.llama_host}:{settings.llama_port}")
+FASTAPI_URL = (f"http://{settings.backend_host}:{settings.backend_port}")
 
 
 @app.post("/v1/chat/completions")
