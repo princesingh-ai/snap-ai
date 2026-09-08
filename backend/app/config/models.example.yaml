@@ -1,0 +1,52 @@
+# Workbench model configuration template.
+#
+# Copy this file to models.yaml and replace the placeholder model names
+# with the model aliases available in your llama.cpp server.
+#
+# models.yaml is intentionally gitignored because model configuration
+# may contain machine/deployment-specific model names.
+
+models:
+  coding:
+    name: "<CODING_MODEL>"
+    role: "coding"
+    provider: "llama.cpp"
+    enabled: true
+    capabilities:
+      - coding
+      - code_generation
+      - debugging
+
+  reasoning:
+    name: "<REASONING_MODEL>"
+    role: "reasoning"
+    provider: "llama.cpp"
+    enabled: true
+    capabilities:
+      - reasoning
+      - problem_solving
+      - analysis
+
+  general:
+    name: "<GENERAL_MODEL>"
+    role: "general"
+    provider: "llama.cpp"
+    enabled: true
+    capabilities:
+      - general
+      - writing
+      - summarization
+      - document_analysis
+
+  document_image:
+    name: "<DOCUMENT_IMAGE_MODEL>"
+    role: "document_image"
+    provider: "llama.cpp"
+    enabled: true
+    capabilities:
+      - document
+      - image
+
+task_analyzer:
+  name: "<TASK_ANALYZER_MODEL>"
+  provider: "llama.cpp"
