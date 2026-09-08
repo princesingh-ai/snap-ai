@@ -24,3 +24,20 @@ class ModelRouter:
             return "general"
 
         raise RuntimeError(f"No enabled model found for task: {task}")
+
+    def route_document_image(self) -> str:
+        model_key = "document_image"
+
+        model = self.models.get(model_key)
+
+        if not model:
+            raise RuntimeError(
+                "Document/image model is not configured.")
+
+        if not model.get("enabled", False):
+            raise RuntimeError(
+                "Document/image model is disabled.")
+
+        print("[DEBUG] ROUTING DOCUMENT/IMAGE TO MODEL: document_image")
+
+        return model_key
