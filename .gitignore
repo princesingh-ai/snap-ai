@@ -1,1 +1,3 @@
 **/__pycache__/
+backend/app/config/models.yaml
+.env
