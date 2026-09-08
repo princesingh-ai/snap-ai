@@ -6,12 +6,18 @@ from app.inference.llama_client import LlamaClient
 from app.services.model_services import ModelService
 from app.services.task_analyzer import TaskAnalyzer
 from app.services.model_router import ModelRouter
+from app.input.detector import has_document_input
+from app.config.settings import settings
+from app.config.loader import load_task_analyzer
 
 app = FastAPI(title="snap", description="A simple API for interacting with the LLaMA model", version="1.0.0")
 
-llama = LlamaClient(base_url="http://100.72.139.99:8080")
+llama = LlamaClient(base_url=f"http://{settings.llama_host}:{settings.llama_port}")
 model_service = ModelService(llama_client=llama)
-task_analyzer = TaskAnalyzer(llama_client=llama, model="gemma4-E2B")
+
+task_analyzer_config = load_task_analyzer()
+task_analyzer = TaskAnalyzer(llama_client=llama, model=task_analyzer_config["name"])
+
 model_router = ModelRouter()
 
 class Message(BaseModel):
@@ -44,17 +50,31 @@ async def chat(request: ChatRequest):
 async def chat_completions(request: dict):
 
     messages = request.get("messages", [])
-    task = await task_analyzer.analyze(messages)
-    model_key = model_router.route(task)
+    print("[DEBUG] FULL REQUEST:")
+    print(request)
 
-    print(f"[DEBUG] TASK: {task}")
-    print(f"[DEBUG] MODEL: {model_key}")
+    if has_document_input(messages):
+        model_key = model_router.route_document_image()
+
+        print("[DEBUG] DOCUMENT/IMAGE INPUT DETECTED")
+        print(f"[DEBUG] MODEL: {model_key}")
+
+    else:
+        task = await task_analyzer.analyze(messages)
+        model_key = model_router.route(task)
+
+        print(f"[DEBUG] TASK: {task}")
+        print(f"[DEBUG] MODEL: {model_key}")
 
     if request.get("stream", False):
 
         async def generate():
 
-            async for chunk in model_service.chat_stream(model_key=model_key, messages=messages, request_body=request):
+            async for chunk in model_service.chat_stream(
+                model_key=model_key,
+                messages=messages,
+                request_body=request,
+            ):
                 yield chunk
 
         return StreamingResponse(
@@ -63,7 +83,11 @@ async def chat_completions(request: dict):
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "X-Accel-Buffering": "no"}
+                "X-Accel-Buffering": "no",
+            },
         )
 
-    return await model_service.chat(model_key=model_key, messages=messages)
+    return await model_service.chat(
+        model_key=model_key,
+        messages=messages,
+    )
