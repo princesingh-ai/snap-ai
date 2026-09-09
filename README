@@ -1,0 +1,521 @@
+================================================================================
+SNAP-AI: Sovereign Air-Gapped AI Workbench & Intelligence Routing System
+================================================================================
+
+SNAP-AI is an on-premises, air-gapped AI workbench and multi-model routing
+platform built on top of llama.cpp. It is engineered specifically for secure,
+industrial, and defence-grade deployments where data confidentiality is absolute
+and no data may ever leave the organization's infrastructure.
+
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. Product Mission & Background
+2. System Description: The Air-Gapped AI Workbench
+3. Expected Solution & Demonstration Checkpoints
+4. Architecture Overview
+5. System Components Explained
+6. Important Hardware & Deployment Notice
+7. Getting Started
+8. Configuration (.example Files Explained)
+9. Running the System (Commands & Reference)
+10. End-to-End Request Flow
+
+
+================================================================================
+1. PRODUCT MISSION & BACKGROUND
+================================================================================
+
+Background & The Industry Dilemma:
+Refineries, Public Sector Undertakings (PSUs), defence-linked manufacturing
+units, and government offices generate substantial volumes of routine but
+highly sensitive knowledge work:
+- Formal approval notes and board presentations
+- Engineering calculations and design reviews
+- Source code for internal utilities and SCADA systems
+- Review of scanned engineering drawings (P&IDs), inspection reports, and SOPs
+
+None of this confidential work can be processed through public cloud AI
+assistants (such as Claude, ChatGPT, or GitHub Copilot) because the underlying
+data is classified and business-critical:
+- Piping & Instrument Diagrams (P&IDs)
+- Proprietary financials and tender/vendor negotiations
+- Unreleased military/industrial designs
+- Internal correspondence, audits, and strategic notes
+
+Company policies strictly mandate that this data remain strictly on-premises.
+As a result, organizations face an unacceptable compromise: either staff perform
+these tedious tasks manually (sacrificing massive productivity gains), or
+employees quietly leak confidential data into public cloud tools to get work done.
+
+Open-weight reasoning and vision models have reached the capability threshold
+needed to power a genuinely useful enterprise assistant. However, off-the-shelf
+deployable solutions tailored for industrial, air-gapped environments simply do
+not exist. SNAP-AI solves this problem.
+
+
+================================================================================
+2. SYSTEM DESCRIPTION: THE AIR-GAPPED AI WORKBENCH
+================================================================================
+
+SNAP-AI delivers a self-hosted, sovereign AI workbench running entirely on
+the organization's own GPU server hardware. Zero external calls are made;
+nothing ever leaves the premises.
+
+Key Pillars of the System:
+
+1. Dynamic Multi-Model Auto-Selection:
+   The backend is never locked to a single monolithic model. It concurrently
+   hosts multiple open-weight models and automatically routes requests to the
+   ideal specialist:
+   - Coding tasks -> dispatched to specialized code LLMs (e.g., Qwen-Coder)
+   - Complex reasoning -> dispatched to deep reasoning models (e.g., Gemma/DeepSeek)
+   - Routine text & summaries -> dispatched to fast general-purpose models
+   - Scanned PDFs & drawings -> dispatched to multimodal vision/OCR models
+   New open-weight models can be registered and hot-swapped without redesigning
+   the system architecture.
+
+2. Full Agentic Execution & Extensible Tool Ecosystem:
+   Rather than acting as a simple one-shot conversational bot, the system acts
+   as an autonomous agent:
+   - Native, pre-included Model Context Protocol (MCP) support enabled via
+     '--webui-mcp-proxy' for seamless, standardized local tool integration
+   - Actively introducing an expanded on-premises tool suite: local file I/O
+     (read/write), spreadsheet manipulation, internal search, and sandboxed
+     code execution
+   - Plans multi-step execution paths and iterates until deliverables meet
+     organizational requirements
+
+3. Deep Multimodal Understanding & Document QA:
+   The system currently features active partial document reading and QA
+   capabilities (detecting uploaded PDFs and image payloads, extracting text,
+   and routing to vision models). This foundation is actively expanding to
+   process complex, messy industrial artifacts:
+   - Reading and answering questions across multi-page PDF inspection reports
+   - Handwritten engineering shift logs, maintenance records, and site notes
+   - Technical blueprints, schematics, and P&ID diagrams
+   - High-resolution photographic site inspections
+
+4. Tangible Deliverables (Not Just Chat):
+   Generates production-grade business and engineering assets:
+   - Ready-to-circulate approval notes
+   - Standard Microsoft Office files (.docx, .xlsx, .pptx)
+   - Tested, verified internal code utilities
+   - Step-by-step engineering calculations with formula derivations
+
+5. Local Grounding (Zero-Leakage Knowledge Base):
+   Connects to on-premises manuals, standard operating procedures (SOPs),
+   regulations, and historical correspondence via a local vector/document index,
+   ensuring hallucination-free outputs without external API calls.
+
+
+================================================================================
+3. EXPECTED SOLUTION & DEMONSTRATION CHECKPOINTS
+================================================================================
+
+To validate that SNAP-AI fulfills all sovereign, agentic, and industrial
+operational requirements, the system is evaluated against six demonstration
+checkpoints and tracked through implementation milestones:
+
+--------------------------------------------------------------------------------
+A) LIVE DEMONSTRATION CHECKPOINTS
+--------------------------------------------------------------------------------
+
+[CHECKPOINT 1] Dynamic Model Auto-Selection Across Task Types
+- Objective: Demonstrate automated model selection across distinct task types
+  without requiring manual model switching by the user.
+- Test Scenarios:
+  * Scenario A (Coding): Prompt requesting an internal tool function or query
+    (e.g., "write a Python script to parse telemetry CSV data")
+    -> Routing: Automatically dispatched to specialized coding model.
+  * Scenario B (Reasoning): Prompt presenting a multi-step engineering logic
+    problem or chemical process calculation
+    -> Routing: Automatically dispatched to deep reasoning model.
+  * Scenario C (General): Prompt requesting standard correspondence or draft
+    -> Routing: Automatically dispatched to fast general-purpose model.
+- Verification Proof: Server logs show TaskAnalyzer classifying the request and
+  ModelRouter switching the target model dynamically in real time.
+
+[CHECKPOINT 2] Deep Multimodal Ingestion & On-Device OCR
+- Objective: Ingest complex industrial visual artifacts without sending any
+  image or byte to an external cloud API.
+- Test Scenarios:
+  * Scanned, degraded PDF inspection reports from plant machinery.
+  * Handwritten engineering shift logs or maintenance check-sheets.
+  * Technical schematics, blueprints, and P&ID diagrams.
+- Verification Proof: Input detector catches image/PDF payload and routes to
+  local vision model; system extracts text, labels, and tables locally.
+
+[CHECKPOINT 3] End-to-End Agentic Task & Tangible Office Deliverable
+- Objective: Execute a multi-step task that produces a real business deliverable
+  rather than a superficial chat message.
+- Test Scenario:
+  * Input: Scanned plant inspection report with equipment vibration data.
+  * Agent Flow:
+    1. Reads and parses the scanned report using local OCR/vision.
+    2. Extracts critical safety and maintenance findings.
+    3. Synthesizes a formal corporate approval note with justification.
+    4. Generates an exportable Microsoft Word (.docx) or Excel (.xlsx) file.
+- Verification Proof: Fully formatted, downloadable document with executive
+  summary, findings matrix, and actionable sign-off sections.
+
+[CHECKPOINT 4] Local Sandboxed Code Execution & Verification
+- Objective: Safely execute, test, and verify code within an isolated on-premise
+  sandbox.
+- Test Scenario:
+  * Input: Request for engineering calculation or internal data processing tool.
+  * Agent Flow:
+    1. Generates the script.
+    2. Executes script inside a secure local sandbox (subprocess / container).
+    3. Captures stdout/stderr; iterates and repairs code if execution fails.
+    4. Displays verified results with step-by-step intermediate calculations.
+- Verification Proof: Working code verified with live execution output shown.
+
+[CHECKPOINT 5] Zero-Leakage Knowledge Base Grounding (Local RAG)
+- Objective: Ground answers in organizational SOPs, manuals, and historical
+  correspondence without external search or embeddings APIs.
+- Test Scenario:
+  * Ingest confidential plant SOP or maintenance manual into local vector store.
+  * Query system about specific operating pressure thresholds or safety protocols.
+- Verification Proof: Response cites exact manual section and page number;
+  strictly hallucination-free; zero data transmitted outside the server.
+
+[CHECKPOINT 6] Verifiable Sovereign Proof (Air-Gapped Network Audit)
+- Objective: Provide irrefutable, auditable proof that no external network
+  traffic is generated at any stage of operation.
+- Verification Method:
+  * Run a live packet capture / network monitor (e.g., tcpdump, iftop, or
+    dedicated monitoring dashboard) during all tests.
+  * Demonstrate that 100% of network traffic is strictly confined to local
+    loopback (127.0.0.1) or internal LAN (e.g., 100.x.x.x).
+- Verification Proof: Zero packets sent to public WAN; cryptographic proof of
+  air-gapped integrity.
+
+
+--------------------------------------------------------------------------------
+B) IMPLEMENTATION & READINESS CHECKPOINTS (DEVELOPMENT TRACKER)
+--------------------------------------------------------------------------------
+
+[√] Checkpoint 1.0: Core Inference Infrastructure
+    - llama.cpp server compilation and runtime integration
+    - Multi-model preset configuration (models.ini)
+    - GPU layer offloading (CUDA / Metal)
+    - Status: COMPLETED
+
+[√] Checkpoint 2.0: Unified Reverse Proxy Gateway
+    - Port 8081 front-door routing
+    - Selective interception of /v1/chat/completions
+    - Native pass-through for Web UI static assets and SSE streams
+    - Status: COMPLETED
+
+[√] Checkpoint 3.0: Intelligent Task Classification & Routing
+    - Real-time prompt classification via local task analyzer LLM
+    - Capability-based routing matrix (models.yaml)
+    - Streaming chat completions via FastAPI
+    - Status: COMPLETED
+
+[~] Checkpoint 4.0: Document Reading & Multimodal Pipeline
+    - Base64 image payload detection and vision model routing
+    - Partial document reading and QA over uploaded PDFs and images (ACTIVE)
+    - Full multi-page deep OCR and high-res diagram analysis (IN PROGRESS)
+    - Status: PARTIAL / IN PROGRESS
+
+[~] Checkpoint 5.0: Agentic Engine & Tool Ecosystem (MCP Integrated)
+    - Pre-included Model Context Protocol (MCP) proxy support (--webui-mcp-proxy) (ACTIVE)
+    - Multi-step task planning and iterative reflection
+    - Introducing expanded tool suite: local file I/O, spreadsheet processing,
+      and isolated code execution sandbox (IN PROGRESS)
+    - Status: PARTIAL / IN PROGRESS
+
+[ ] Checkpoint 6.0: Document Deliverable Generators
+    - Structured Word (.docx) approval note generator
+    - Excel (.xlsx) spreadsheet and calculation report exporter
+    - PowerPoint (.pptx) briefing deck generator
+    - Status: PLANNED
+
+[ ] Checkpoint 7.0: Local Knowledge Base Connector (SOP Grounding)
+    - Fully on-premise embedding model and local vector index
+    - Semantic search across technical manuals, drawings, and correspondence
+    - Status: PLANNED
+
+[ ] Checkpoint 8.0: Sovereign Egress Audit & Network Monitor
+    - Built-in audit logger tracking all outgoing network calls
+    - Real-time network monitor proving zero WAN traffic
+    - Status: PLANNED
+
+
+================================================================================
+4. ARCHITECTURE OVERVIEW
+================================================================================
+
+The platform is designed in three cohesive layers:
+
+ [ User Workstation / Browser / llama.cpp Web UI ]
+                         │
+                         ▼
+           ┌───────────────────────────┐
+           │      GATEWAY (Proxy)      │  (Port: 8081)
+           │   app.gateway:app         │
+           └─────────────┬─────────────┘
+                         │
+             ┌───────────┴────────────────────────────────────────┐
+             │ (Chat Completions:                                 │ (All Other Requests:
+             │  /v1/chat/completions)                             │  WebUI assets, /props,
+             ▼                                                    │  /v1/models, SSE)
+       ┌───────────────────────────┐                              │
+       │ FASTAPI INTELLIGENCE APP  │  (Port: 8000)                │
+       │ app.main:app              │                              │
+       ├───────────────────────────┤                              │
+       │ • Input Type Detector     │                              │
+       │   (Vision & Scanned PDFs) │                              │
+       │ • Task Classifier LLM     │                              │
+       │   (Coding/Reasoning/Gen)  │                              │
+       │ • Capability Router       │                              │
+       │   (models.yaml resolver)  │                              │
+       └─────────────┬─────────────┘                              │
+                     │                                            │
+                     │ (Selected Model Request)                   │
+                     ▼                                            │
+             ┌────────────────────────────────────────────────────┘
+             ▼
+       ┌──────────────────────────────────────────────────────────┐
+       │                  LLAMA.CPP SERVER                        │  (Port: 8080)
+       │ llama-server with models.ini presets                     │
+       ├──────────────────────────────────────────────────────────┤
+       │ • Multi-model hosting (GGUF format)                      │
+       │ • Multi-GPU tensor/layer distribution (CUDA/Metal)       │
+       │ • Built-in Web UI & OpenAI-compatible endpoints         │
+       └──────────────────────────────────────────────────────────┘
+
+
+================================================================================
+5. SYSTEM COMPONENTS EXPLAINED
+================================================================================
+
+1. Gateway Proxy (backend/app/gateway.py)
+   - Listens on port 8081 as the unified public interface.
+   - Forwards static web assets, llama.cpp GUI resources, and administrative
+     endpoints (/v1/models, /props, SSE) directly to llama-server.
+   - Transparently intercepts '/v1/chat/completions' and sends requests to the
+     FastAPI intelligence layer for classification and dynamic routing.
+   - Streams raw token responses back to the client with low latency.
+
+2. FastAPI Intelligence Backend (backend/app/main.py)
+   - Listens on port 8000 as the orchestration brain.
+   - Input Detection (app/input/detector.py): Inspects payload messages for
+     multimodal data (e.g. image_url blocks, base64 data, or embedded PDF text).
+     If found, immediately routes to the 'document_image' model.
+   - Task Classifier (app/services/task_analyzer.py): Employs a rapid local
+     classification model to categorize prompts strictly into 'coding',
+     'reasoning', or 'general'.
+   - Model Router (app/services/model_router.py): Matches the identified task
+     against configured capabilities and active models declared in models.yaml.
+   - Model Service (app/services/model_services.py & app/inference/llama_client.py):
+     Dispatches requests to llama-server using the resolved model alias and
+     supports streaming generator yields.
+
+3. llama.cpp Server (llama-server)
+   - High-performance, memory-efficient C++ local LLM server.
+   - Manages multiple concurrent model weights via preset files (models.ini).
+   - Distributes layers across available hardware (GPUs/CPU), supports Jinja
+     prompt templating, and hosts the built-in browser UI.
+   - Features pre-included Model Context Protocol (MCP) proxy support via
+     '--webui-mcp-proxy' for standardizing local tool connectivity and agent
+     execution.
+
+
+================================================================================
+6. IMPORTANT HARDWARE & DEPLOYMENT NOTICE
+================================================================================
+
+[!] WARNING: MULTI-GPU SERVER ENVIRONMENT
+This system was designed, configured, and tested on a dedicated multi-GPU
+production server with multiple discrete NVIDIA GPUs (e.g., devices 0 and 2).
+
+DO NOT run the multi-GPU command with CUDA_VISIBLE_DEVICES="0,2" on your local
+machine unless:
+1. You have multiple physical NVIDIA GPUs installed.
+2. The GPU indices specified exist on your host system.
+
+If running locally on a single GPU, CPU, or Apple Silicon (Metal), use the
+standard local example commands described in Section 9.
+
+
+================================================================================
+7. GETTING STARTED
+================================================================================
+
+Prerequisites:
+- Python >= 3.13
+- uv package manager (https://docs.astral.sh/uv/)
+- llama.cpp compiled binary (llama-server)
+- Downloaded GGUF model files placed in the models/ directory
+
+Step 1: Create a Virtual Environment
+-----------------------------------
+From the project root:
+
+    uv venv
+
+Step 2: Activate the Virtual Environment
+---------------------------------------
+On macOS / Linux:
+
+    source .venv/bin/activate
+
+On Windows (Command Prompt / PowerShell):
+
+    .venv\Scripts\activate
+
+Step 3: Install Dependencies
+----------------------------
+Synchronize all project dependencies via uv:
+
+    uv sync
+
+
+================================================================================
+8. CONFIGURATION (.EXAMPLE FILES EXPLAINED)
+================================================================================
+
+The repository provides template configuration files that must be adapted for
+your specific deployment.
+
+1. Environment Configuration: .env.example -> .env
+--------------------------------------------------
+Copy .env.example to .env in the project root:
+
+    cp .env.example .env
+
+Variables to configure:
+- BACKEND_HOST / BACKEND_PORT:
+  Host and port where FastAPI intelligence app runs (default: 127.0.0.1:8000).
+- LLAMA_HOST / LLAMA_PORT:
+  Host and port where llama-server runs (default: 127.0.0.1:8080).
+- GATEWAY_HOST / GATEWAY_PORT:
+  Host and port for the user-facing gateway proxy (default: 127.0.0.1:8081).
+
+For server deployments, bind to your network interface or LAN IP
+(e.g., 100.72.139.99).
+
+
+2. Model Routing Configuration: models.example.yaml -> models.yaml
+------------------------------------------------------------------
+Copy backend/app/config/models.example.yaml to backend/app/config/models.yaml:
+
+    cp backend/app/config/models.example.yaml backend/app/config/models.yaml
+
+(models.yaml is gitignored to protect sensitive and host-specific configurations.)
+
+Sections to customize:
+- models.coding.name: Model alias for coding queries (e.g., "qwen3-4B").
+- models.reasoning.name: Model alias for reasoning/analysis (e.g., "gemma4-12B").
+- models.general.name: Fallback model for general conversation.
+- models.document_image.name: Multimodal vision model for processing images/PDFs.
+- task_analyzer.name: Lightweight model alias used strictly for classifying tasks.
+
+
+3. llama.cpp Model Presets: models.ini
+---------------------------------------
+File: models.ini in the project root.
+Configures GPU distribution and preloading for each model:
+- [*]: Global settings (e.g., n-gpu-layers = 999 to maximize GPU offload).
+- [<model-alias>]: Model blocks:
+  - main-gpu: Assigns which physical GPU card holds model KV context.
+  - load-on-startup: Loads model into VRAM on startup to eliminate cold starts.
+
+
+4. Model Weights Directory: models/
+-----------------------------------
+File: models/README
+Model weights (.gguf) are stored locally in the models/ directory and are
+never committed to Git. Download compatible GGUF files and place them here.
+
+
+================================================================================
+9. RUNNING THE SYSTEM (COMMANDS & REFERENCE)
+================================================================================
+
+Three services run simultaneously to form the complete workbench. Start each in
+a separate terminal or as a managed system service.
+
+SERVICE 1: LLAMA.CPP INFERENCE SERVER (llama-server)
+----------------------------------------------------
+
+A) Real Server Multi-GPU Production Command:
+   (Use ONLY on multi-GPU server environments with CUDA configured)
+
+   CUDA_VISIBLE_DEVICES="GPU_NUM,GPU_NUM,...GPU_NUM" LD_LIBRARY_PATH=~/projects/snap-ai/llama.cpp/build/bin \
+   ~/projects/snap-ai/llama.cpp/build/bin/llama-server \
+     --models-dir ~/projects/snap-ai/models \
+     --models-preset ~/projects/snap-ai/models.ini \
+     --models-max 3 \
+     --host 100.72.139.99 \
+     --port 8080 \
+     --parallel 1 \
+     --jinja \
+     --webui-mcp-proxy
+
+B) Local / Single-GPU / CPU Example Command:
+   (For local development or single-GPU workstations)
+
+   ./llama.cpp/build/bin/llama-server \
+     --models-dir ./models \
+     --models-preset ./models.ini \
+     --models-max 3 \
+     --host 127.0.0.1 \
+     --port 8080 \
+     --parallel 1 \
+     --jinja
+
+
+SERVICE 2: FASTAPI INTELLIGENCE BACKEND (app.main:app)
+------------------------------------------------------
+From the backend directory:
+
+A) Production Server Command:
+   cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+B) Local Development Command (with hot-reload):
+   cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+
+
+SERVICE 3: GATEWAY PROXY (app.gateway:app)
+------------------------------------------
+From the backend directory:
+
+A) Production Server Command:
+   cd backend && uvicorn app.gateway:app --host 100.72.139.99 --port 8081
+
+B) Local Development Command:
+   cd backend && uvicorn app.gateway:app --host 127.0.0.1 --port 8081 --reload
+
+
+WEB UI ACCESS
+-------------
+Once the services are active, access the workbench from your browser:
+
+- Production Server: http://100.72.139.99:8081
+- Local Workstation: http://127.0.0.1:8081
+
+Users interact with the familiar llama.cpp interface, while the backend
+intelligently routes tasks behind the scenes.
+
+
+================================================================================
+10. END-TO-END REQUEST FLOW
+================================================================================
+
+1. User submits a request (prompt, image, or document) via the Web UI (:8081).
+2. Gateway intercepts the POST to /v1/chat/completions.
+3. Gateway passes the payload to the FastAPI Intelligence Layer (:8000).
+4. FastAPI evaluates the input:
+   - If an image or PDF attachment is detected -> Dispatches to 'document_image'.
+   - If plain text -> Task Classifier runs a quick prompt against a local
+     classifier model to categorize as 'coding', 'reasoning', or 'general'.
+5. Model Router queries models.yaml to select the designated, enabled model.
+6. Model Service issues the inference query to llama-server (:8080).
+7. llama-server generates the response with GPU acceleration and streams
+   tokens back through FastAPI -> Gateway -> Browser in real-time.
+================================================================================
