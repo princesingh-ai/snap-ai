@@ -1,0 +1,7 @@
+
+#Models
+
+Place downloaded model files in this directory.
+Model weights are intentionally not committed to Git because they are large.
+Expected models are documented separately in the project setup documentation.
+
