@@ -14,12 +14,15 @@ LLAMA_URL = (f"http://{settings.llama_host}:{settings.llama_port}")
 @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
 async def gateway(request: Request, path: str):
 
+    print(f"[GATEWAY] path={path} target check")
+
     if path in {
         "v1/chat/completions",
         "v1/chat/completions/control"}:
         target = f"{BACKEND_URL}/{path}"
     else:
         target = f"{LLAMA_URL}/{path}"
+        print(f"[GATEWAY] target={target}")
 
     body = await request.body()
 
@@ -60,6 +63,10 @@ async def gateway(request: Request, path: str):
     async with httpx.AsyncClient(timeout=None) as client:
 
         response = await client.request(request.method, target, headers=headers, content=body)
+        print(f"[GATEWAY] upstream status={response.status_code}")
+        print("[GATEWAY] target:", target)
+        print("[GATEWAY] upstream status:", response.status_code)
+        print("[GATEWAY] upstream body:", response.text[:500])
 
     response_headers = {
         key: value
