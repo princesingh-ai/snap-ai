@@ -317,7 +317,7 @@ The platform is designed in three cohesive layers:
        ├──────────────────────────────────────────────────────────┤
        │ • Multi-model hosting (GGUF format)                      │
        │ • Multi-GPU tensor/layer distribution (CUDA/Metal)       │
-       │ • Built-in Web UI & OpenAI-compatible endpoints         │
+       │ • Built-in Web UI & OpenAI-compatible endpoints          │
        └──────────────────────────────────────────────────────────┘
 
 
