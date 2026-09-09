@@ -1,11 +1,14 @@
 ================================================================================
-SNAP-AI: Sovereign Air-Gapped AI Workbench & Intelligence Routing System
+Snap: Sovereign Air-Gapped AI Workbench & Intelligence Routing System
 ================================================================================
 
-SNAP-AI is an on-premises, air-gapped AI workbench and multi-model routing
-platform built on top of llama.cpp. It is engineered specifically for secure,
-industrial, and defence-grade deployments where data confidentiality is absolute
-and no data may ever leave the organization's infrastructure.
+Snap is an on-premises, air-gapped AI workbench and multi-model routing
+platform built on top of llama.cpp. By leveraging modern quantized models
+(GGUF) and speculative decoding, the system allows massive open-weight models
+to run efficiently and generate responses significantly faster on organization
+servers. It is engineered specifically for secure, industrial, and defence-grade
+deployments where data confidentiality is absolute and no data may ever leave
+the premises.
 
 
 --------------------------------------------------------------------------------
@@ -52,14 +55,14 @@ employees quietly leak confidential data into public cloud tools to get work don
 Open-weight reasoning and vision models have reached the capability threshold
 needed to power a genuinely useful enterprise assistant. However, off-the-shelf
 deployable solutions tailored for industrial, air-gapped environments simply do
-not exist. SNAP-AI solves this problem.
+not exist. Snap solves this problem.
 
 
 ================================================================================
 2. SYSTEM DESCRIPTION: THE AIR-GAPPED AI WORKBENCH
 ================================================================================
 
-SNAP-AI delivers a self-hosted, sovereign AI workbench running entirely on
+Snap delivers a self-hosted, sovereign AI workbench running entirely on
 the organization's own GPU server hardware. Zero external calls are made;
 nothing ever leaves the premises.
 
@@ -109,12 +112,39 @@ Key Pillars of the System:
    regulations, and historical correspondence via a local vector/document index,
    ensuring hallucination-free outputs without external API calls.
 
+6. High-Performance llama.cpp Core (Speculative Decoding & Quantization):
+   Built natively on llama.cpp, the workbench achieves state-of-the-art inference
+   throughput on organizational GPU/CPU hardware:
+   - Speculative Decoding: Pairs a lightweight draft model with a larger target
+     model to generate multiple candidate tokens in parallel, significantly
+     accelerating inference speed and reducing latency per token without loss
+     of generation quality.
+   - Advanced GGUF Quantization: Supports modern 4-bit, 5-bit, and 8-bit quantization
+     formats (e.g., Q4_K_M, Q5_K_M, Q8_0), enabling massive 70B+ parameter
+     reasoning and coding models to fit comfortably within available VRAM and
+     run with peak computational efficiency.
+
+   Why llama.cpp?
+   - Architectural Excellence & Battle-Tested Reliability: Rather than building
+     a bespoke inference engine that merely 'just works', Snap builds upon a
+     phenomenal, production-grade, and mature C/C++ architecture. If an open-source
+     system is already extraordinarily well-engineered, battle-tested, and actively
+     optimized by top systems engineers globally, adopting it ensures rock-solid
+     reliability and peak performance rather than maintaining a fragile, reinvented
+     wheel.
+   - 100% Open-Source & Sovereign Integrity: Fully open-weight and open-source with
+     zero proprietary locks, zero telemetry, and zero remote call-homes. This is
+     paramount for strict air-gapped refineries, PSUs, and defence environments.
+   - Bare-Metal Hardware Extraction: Highly optimized compute kernels (CUDA, Metal,
+     ROCm, Vulkan, AVX-512) and memory-mapped (mmap) file loading allow organizations
+     to extract every ounce of performance from their existing server hardware.
+
 
 ================================================================================
 3. EXPECTED SOLUTION & DEMONSTRATION CHECKPOINTS
 ================================================================================
 
-To validate that SNAP-AI fulfills all sovereign, agentic, and industrial
+To validate that Snap fulfills all sovereign, agentic, and industrial
 operational requirements, the system is evaluated against six demonstration
 checkpoints and tracked through implementation milestones:
 
@@ -197,9 +227,11 @@ A) LIVE DEMONSTRATION CHECKPOINTS
 B) IMPLEMENTATION & READINESS CHECKPOINTS (DEVELOPMENT TRACKER)
 --------------------------------------------------------------------------------
 
-[√] Checkpoint 1.0: Core Inference Infrastructure
+[√] Checkpoint 1.0: Core Inference Infrastructure (llama.cpp)
     - llama.cpp server compilation and runtime integration
     - Multi-model preset configuration (models.ini)
+    - Efficient execution of large models via GGUF quantization (k-quants)
+    - Faster inference throughput via speculative decoding support
     - GPU layer offloading (CUDA / Metal)
     - Status: COMPLETED
 
@@ -317,9 +349,16 @@ The platform is designed in three cohesive layers:
 
 3. llama.cpp Server (llama-server)
    - High-performance, memory-efficient C++ local LLM server.
+   - Advanced GGUF Model Quantization: Runs large 70B+ parameter models
+     efficiently on enterprise GPU/CPU hardware using optimal k-quants
+     (e.g., Q4_K_M, Q5_K_M), minimizing VRAM requirements with negligible
+     quality degradation.
+   - Speculative Decoding Support: Drastically accelerates token generation
+     throughput and cuts latency by utilizing a small draft model to predict
+     tokens verified in parallel by the primary model.
    - Manages multiple concurrent model weights via preset files (models.ini).
-   - Distributes layers across available hardware (GPUs/CPU), supports Jinja
-     prompt templating, and hosts the built-in browser UI.
+   - Distributes layers across available hardware (GPUs/CPU via CUDA/Metal),
+     supports Jinja prompt templating, and hosts the built-in browser UI.
    - Features pre-included Model Context Protocol (MCP) proxy support via
      '--webui-mcp-proxy' for standardizing local tool connectivity and agent
      execution.
