@@ -1,0 +1,592 @@
+WORKBENCH
+=========
+
+Workbench is a local-first AI workstation designed to provide a unified
+interface for multiple specialized AI models and autonomous coursework
+workflows.
+
+The system is built around llama.cpp for local inference, a FastAPI
+backend for orchestration and routing, and a gateway that provides a
+single access point for the frontend and backend services.
+
+
+CURRENT ARCHITECTURE
+====================
+
+                         Workbench
+                            |
+                            v
+                    Gateway :8081
+                            |
+                 +----------+----------+
+                 |                     |
+                 v                     v
+          FastAPI Backend          llama.cpp
+             :8000                  :8080
+                 |                     |
+                 |                     +----------------+
+                 |                                      |
+                 v                                      v
+          Model Routing                          Model Router
+                 |                                      |
+                 +----------------+---------------------+
+                                  |
+                    +-------------+-------------+
+                    |             |             |
+                    v             v             v
+                 Coding       Reasoning      General
+                Gemma 4 12B    Qwen3 4B      Gemma 4 E2B
+
+
+SERVICES
+========
+
+1. llama.cpp
+
+Location:
+
+    llama.cpp/
+
+llama.cpp is included as a Git submodule and provides the local inference
+server and model router.
+
+The current server runs on:
+
+    100.72.139.99:8080
+
+The server is configured to use physical GPUs 0 and 2.
+
+Physical GPU 1 is intentionally not used by Workbench.
+
+Current model routing:
+
+    coding         -> Gemma 4 12B
+    reasoning      -> Qwen3 4B
+    general        -> Gemma 4 E2B
+    document_image -> Gemma 4 12B
+
+
+2. FastAPI Backend
+
+Location:
+
+    backend/
+
+The backend provides the Workbench application logic.
+
+Responsibilities currently include:
+
+    - Chat API
+    - Task analysis
+    - Model routing
+    - Model configuration
+    - Document/image input detection
+    - Communication with llama.cpp
+
+The backend runs on:
+
+    127.0.0.1:8000
+
+
+3. Gateway
+
+Location:
+
+    backend/app/gateway.py
+
+The gateway provides the external HTTP entry point for Workbench.
+
+The gateway runs on:
+
+    100.72.139.99:8081
+
+Routing behavior:
+
+    /v1/chat/completions
+        -> FastAPI backend
+
+    /v1/chat/completions/control
+        -> FastAPI backend
+
+    Other llama.cpp endpoints
+        -> llama.cpp :8080
+
+The gateway does not provide model-selection logic. Model selection
+belongs to the backend and llama.cpp router.
+
+
+MODEL CONFIGURATION
+===================
+
+There are two separate configuration layers.
+
+1. llama.cpp configuration:
+
+    models.ini
+
+This defines the llama.cpp router's model presets and loading behavior.
+
+2. Workbench configuration:
+
+    backend/app/config/models.yaml
+
+This defines Workbench's logical model roles.
+
+Example logical roles:
+
+    coding
+    reasoning
+    general
+    document_image
+
+The local models.yaml file is intentionally ignored by Git because
+model configuration can be machine-specific.
+
+A template/example configuration should be maintained separately.
+
+
+CURRENT MODELS
+==============
+
+Gemma 4 12B
+------------
+
+Purpose:
+
+    - Coding
+    - Code generation
+    - Debugging
+    - Document/image understanding
+
+Gemma 4 E2B
+-----------
+
+Purpose:
+
+    - General tasks
+    - Writing
+    - Summarization
+    - Task analysis
+
+Qwen3 4B
+--------
+
+Purpose:
+
+    - Reasoning
+    - Problem solving
+    - Analysis
+
+Chandra OCR 2
+-------------
+
+Purpose:
+
+    - OCR
+    - Document extraction
+
+Chandra is currently maintained as a separate model and is not yet
+integrated into the main Workbench document pipeline.
+
+
+DOCUMENT AND IMAGE INPUT
+========================
+
+Workbench can detect document/image input before normal task analysis.
+
+Currently supported input types include:
+
+    - Images
+    - PDFs
+
+Images are detected from OpenAI-compatible image_url message parts.
+
+PDFs can be converted by the llama.cpp WebUI into image inputs.
+
+When document/image input is detected:
+
+    User input
+        |
+        v
+    Document/Image detector
+        |
+        v
+    document_image route
+        |
+        v
+    Gemma 4 12B
+
+
+For normal text-only requests:
+
+    User input
+        |
+        v
+    TaskAnalyzer
+        |
+        v
+    ModelRouter
+        |
+        +---- coding ------> Gemma 4 12B
+        |
+        +---- reasoning ---> Qwen3 4B
+        |
+        +---- general -----> Gemma 4 E2B
+
+
+TASK ANALYZER
+=============
+
+The TaskAnalyzer uses Gemma 4 E2B to classify text-only requests.
+
+It determines the logical task category before the request reaches the
+normal model router.
+
+Current categories include:
+
+    coding
+    reasoning
+    general
+
+
+LLAMA CLIENT
+============
+
+The backend communicates with llama.cpp through an OpenAI-compatible
+HTTP API.
+
+Primary endpoint:
+
+    /v1/chat/completions
+
+The backend supports both:
+
+    - Non-streaming responses
+    - Streaming responses
+
+
+GATEWAY
+=======
+
+The gateway exists so that the frontend can use a single endpoint while
+Workbench decides whether a request should go to FastAPI or directly to
+llama.cpp.
+
+The gateway currently runs separately from the llama.cpp server.
+
+It is intentionally not implemented as a traditional llama.cpp
+reverse-proxy configuration. It is a dedicated FastAPI gateway.
+
+
+NETWORK
+=======
+
+Current endpoints:
+
+    llama.cpp
+        http://100.72.139.99:8080
+
+    gateway
+        http://100.72.139.99:8081
+
+    backend
+        http://127.0.0.1:8000
+
+Port 9000 is NOT used by Workbench.
+
+Port 9000 is already occupied by another service on the shared server
+and must not be modified.
+
+
+GPU USAGE
+=========
+
+Workbench currently exposes:
+
+    Physical GPU 0
+    Physical GPU 2
+
+through:
+
+    CUDA_VISIBLE_DEVICES="0,2"
+
+The mapping is:
+
+    CUDA logical GPU 0 -> physical GPU 0
+    CUDA logical GPU 1 -> physical GPU 2
+
+Physical GPU 1 is intentionally excluded.
+
+Other users' GPU processes must not be modified.
+
+
+MODEL WEIGHTS
+=============
+
+Model weights are stored under:
+
+    models/
+
+GGUF model files are intentionally ignored by Git.
+
+Model weights must be downloaded separately.
+
+The repository does not contain the actual model weights.
+
+
+LLAMA.CPP SUBMODULE
+===================
+
+llama.cpp is maintained as a Git submodule:
+
+    llama.cpp/
+
+The repository currently tracks the submodule source rather than
+committing the llama.cpp source directly into Workbench.
+
+The llama.cpp build directory and compiled binaries are local artifacts
+and are not tracked by Git.
+
+
+PYTHON ENVIRONMENT
+==================
+
+Workbench uses uv for Python environment management.
+
+Create the environment:
+
+    uv venv
+
+Activate it:
+
+    source .venv/bin/activate
+
+Install dependencies:
+
+    uv sync
+
+
+RUNNING THE SYSTEM
+==================
+
+Start llama.cpp first.
+
+Example:
+
+    CUDA_VISIBLE_DEVICES="0,2" \
+    LD_LIBRARY_PATH=~/projects/snap-ai/llama.cpp/build/bin \
+    ~/projects/snap-ai/llama.cpp/build/bin/llama-server \
+        --models-dir ~/projects/snap-ai/models \
+        --models-preset ~/projects/snap-ai/models.ini \
+        --models-max 3 \
+        --host 100.72.139.99 \
+        --port 8080 \
+        --parallel 1 \
+        --jinja \
+        --webui-mcp-proxy
+
+
+Start the FastAPI backend:
+
+    cd backend
+
+    ../.venv/bin/uvicorn app.main:app \
+        --host 127.0.0.1 \
+        --port 8000
+
+
+Start the gateway:
+
+    cd backend
+
+    ../.venv/bin/uvicorn app.gateway:app \
+        --host 100.72.139.99 \
+        --port 8081
+
+
+ENVIRONMENT
+===========
+
+Environment configuration is stored in:
+
+    .env
+
+A template is provided as:
+
+    .env.example
+
+The .env file is intentionally ignored by Git.
+
+The application resolves the project-level .env independently of the
+current working directory.
+
+
+SECURITY
+========
+
+Workbench runs on a shared server.
+
+The following rules are important:
+
+    - Do not modify services belonging to other users.
+    - Do not use physical GPU 1.
+    - Do not use port 9000.
+    - Do not expose model weights through the backend.
+    - Do not commit .env files.
+    - Do not commit GGUF model weights.
+    - Do not give FastAPI unrestricted host access.
+    - Generated code must not execute inside FastAPI.
+
+
+SANDBOX EXECUTION
+=================
+
+A dedicated sandbox execution system is planned for running generated
+and student code.
+
+The intended architecture is:
+
+    FastAPI
+        |
+        v
+    Sandbox Service
+        |
+        v
+    Isolated Execution Environment
+        |
+        +---- compile
+        |
+        +---- execute
+        |
+        v
+    Result
+
+The sandbox must provide:
+
+    - No network access
+    - CPU limits
+    - Memory limits
+    - Execution timeout
+    - Process limits
+    - Output limits
+    - Temporary filesystem
+    - No access to user home directories
+    - No access to SSH credentials
+    - No access to model files
+    - No access to .env
+    - Disposable execution environments
+
+Generated code must never be executed directly by FastAPI on the host.
+
+
+ASSIGNMENT AGENT
+===============
+
+Workbench is intended to evolve into an autonomous coursework and
+assignment agent.
+
+The planned workflow is:
+
+    Assignment
+        |
+        v
+    Perception
+        |
+        v
+    Structured understanding
+        |
+        v
+    Task planning
+        |
+        v
+    Code/content generation
+        |
+        v
+    Sandbox execution
+        |
+        v
+    Test and verification
+        |
+        v
+    Repair
+        |
+        v
+    Final artifact
+
+
+CURRENT STATUS
+==============
+
+Implemented:
+
+    - FastAPI backend
+    - llama.cpp integration
+    - Model routing
+    - TaskAnalyzer
+    - Environment-based configuration
+    - Gateway
+    - Streaming chat forwarding
+    - Model registry
+    - Image input detection
+    - PDF/image routing
+    - llama.cpp Git submodule
+    - Local GGUF model organization
+
+Partially implemented / planned:
+
+    - Dedicated sandbox execution service
+    - Automated compile/test/repair loop
+    - Chandra OCR integration
+    - Advanced document processing
+    - Assignment planning
+    - Template-preserving document generation
+    - Autonomous coursework workflow
+
+
+REPOSITORY STRUCTURE
+====================
+
+    snap-ai/
+    |
+    +-- backend/
+    |   +-- app/
+    |       +-- config/
+    |       +-- documents/
+    |       +-- inference/
+    |       +-- ...
+    |
+    +-- llama.cpp/
+    |   +-- llama.cpp Git submodule
+    |
+    +-- models/
+    |   +-- README
+    |   +-- local GGUF weights
+    |
+    +-- models.ini
+    +-- .env.example
+    +-- .gitignore
+    +-- pyproject.toml
+    +-- uv.lock
+    +-- README
+
+
+IMPORTANT
+=========
+
+This project is under active development.
+
+Configuration, model assignments, ports, and architecture may change as
+Workbench evolves.
+
+When modifying the system, preserve the separation between:
+
+    Frontend
+        |
+    Gateway
+        |
+    FastAPI orchestration
+        |
+    llama.cpp inference
+
+and keep untrusted code execution isolated from the application and
+host system.
