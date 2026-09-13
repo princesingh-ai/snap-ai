@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 from fastapi import Depends
+from fastapi import HTTPException
 
 from app.inference.llama_client import LlamaClient
 from app.services.model_services import ModelService
@@ -13,15 +14,15 @@ from app.config.settings import settings
 from app.config.loader import load_task_analyzer
 
 from app.mcp.server import mcp
-from app.auth.rbac import Role, is_allowed
-
-from fastapi import HTTPException
 
 from app.auth.jwt import create_access_token
 from app.auth.users import authenticate_user, add_user
 from app.auth.dependencies import get_current_user
 from app.auth.models import User
 from app.auth.permissions import require_permission
+from app.services.mcp_client import MCPClient
+from app.auth.dependencies import get_current_access_token
+from app.auth.rbac import Role, is_allowed
 
 add_user(
     user_id="admin-001",
@@ -65,6 +66,8 @@ org_data_analyzer = OrgDataAnalyzer(llama_client=llama, model=task_analyzer_conf
 
 model_router = ModelRouter()
 
+mcp_client = MCPClient(base_url="http://127.0.0.1:8000/mcp/")
+
 class Message(BaseModel):
     """A message in the chat conversation, consisting of a role and content."""
     role: str
@@ -100,7 +103,8 @@ async def chat(request: ChatRequest):
     return {"task": task, "model": model_key, "response": response}
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: dict, current_user: User = Depends(get_current_user)):
+@app.post("/v1/chat/completions")
+async def chat_completions(request: dict, current_user: User = Depends(get_current_user), access_token: str = Depends(get_current_access_token)):
 
     messages = request.get("messages", [])
     print("[DEBUG] FULL REQUEST:")
@@ -119,6 +123,7 @@ async def chat_completions(request: dict, current_user: User = Depends(get_curre
 
         if org_data["requires_org_data"]:
             resource_type = org_data["resource_type"]
+            search_query = org_data["search_query"]
 
             if not is_allowed(
                 current_user.role,
@@ -132,6 +137,30 @@ async def chat_completions(request: dict, current_user: User = Depends(get_curre
                         f"to access '{resource_type}' resources."
                     ),
                 )
+
+            org_context = await mcp_client.retrieve_context(
+                query=search_query,
+                resource_type=resource_type,
+                access_token=access_token,
+            )
+
+            if org_context:
+                messages = [
+                    {
+                        "role": "system",
+                        "content": (
+                            "The following information comes from authorized "
+                            "internal organizational data. Use it to answer the "
+                            "user's request. Do not invent information that is "
+                            "not present in the supplied context.\n\n"
+                            f"{org_context}"
+                        ),
+                    },
+                    *messages,
+                ]
+
+            print("[DEBUG] MCP CONTEXT:")
+            print(org_context)
 
         task = await task_analyzer.analyze(messages)
         model_key = model_router.route(task)
