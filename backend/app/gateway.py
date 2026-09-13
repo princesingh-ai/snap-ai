@@ -16,9 +16,13 @@ async def gateway(request: Request, path: str):
 
     print(f"[GATEWAY] path={path} target check")
 
-    if path in {
-        "v1/chat/completions",
-        "v1/chat/completions/control"}:
+    if (
+        path.startswith("auth/")
+        or path in {
+            "v1/chat/completions",
+            "v1/chat/completions/control",
+        }
+    ):
         target = f"{BACKEND_URL}/{path}"
     else:
         target = f"{LLAMA_URL}/{path}"
