@@ -1,0 +1,42 @@
+================================================================================
+Snap: Sovereign Air-Gapped AI Workbench & Intelligence Routing System
+================================================================================
+
+Snap is an on-premises, air-gapped AI workbench and multi-model routing
+platform built on top of llama.cpp. By leveraging modern quantized models
+(GGUF) and speculative decoding, the system allows massive open-weight models
+to run efficiently and generate responses significantly faster on organization
+servers. It is engineered specifically for secure, industrial, and defence-grade
+deployments where data confidentiality is absolute and no data may ever leave
+the premises.
+
+================================================================================
+PRODUCT MISSION & BACKGROUND
+================================================================================
+
+Background & The Industry Dilemma:
+Refineries, Public Sector Undertakings (PSUs), defence-linked manufacturing
+units, and government offices generate substantial volumes of routine but
+highly sensitive knowledge work:
+- Formal approval notes and board presentations
+- Engineering calculations and design reviews
+- Source code for internal utilities and SCADA systems
+- Review of scanned engineering drawings (P&IDs), inspection reports, and SOPs
+
+None of this confidential work can be processed through public cloud AI
+assistants (such as Claude, ChatGPT, or GitHub Copilot) because the underlying
+data is classified and business-critical:
+- Piping & Instrument Diagrams (P&IDs)
+- Proprietary financials and tender/vendor negotiations
+- Unreleased military/industrial designs
+- Internal correspondence, audits, and strategic notes
+
+Company policies strictly mandate that this data remain strictly on-premises.
+As a result, organizations face an unacceptable compromise: either staff perform
+these tedious tasks manually (sacrificing massive productivity gains), or
+employees quietly leak confidential data into public cloud tools to get work done.
+
+Open-weight reasoning and vision models have reached the capability threshold
+needed to power a genuinely useful enterprise assistant. However, off-the-shelf
+deployable solutions tailored for industrial, air-gapped environments simply do
+not exist. Snap solves this problem.
