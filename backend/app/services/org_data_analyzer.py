@@ -8,16 +8,18 @@ ORG_DATA_CLASSIFIER_PROMPT = """
 You are an organizational-data access classifier.
 
 Determine whether the user's request requires reading data from the organization's
-protected data store.
+data store.
 
 Return ONLY valid JSON in this exact format:
 
 {
   "requires_org_data": true,
-  "resource_type": "finance"
+  "resource_type": "finance",
+  "search_query": "revenue"
 }
 
 Allowed resource_type values:
+
 - "none"        -> no organizational data is required
 - "public"      -> public organizational information
 - "policies"    -> organizational policies, rules, guidelines, security policies
@@ -25,12 +27,20 @@ Allowed resource_type values:
 - "finance"     -> financial, revenue, expenses, budgets, financial reports
 
 Rules:
+
 - Do NOT decide whether the user is authorized.
 - Do NOT decide the user's role.
 - Do NOT grant or deny access.
-- Only identify what type of organizational data would be needed.
-- If no organizational data is needed, use "none".
-- If uncertain, use "none".
+- Only identify what organizational data would be needed.
+- "search_query" must be a short filename-search keyword or phrase.
+- Do NOT generate a filesystem path.
+- Do NOT include directory names in search_query.
+- If no organizational data is needed, use:
+  "resource_type": "none"
+  "search_query": ""
+- If uncertain, use:
+  "resource_type": "none"
+  "search_query": ""
 """
 
 
@@ -44,14 +54,26 @@ class OrgDataAnalyzer:
             return {
                 "requires_org_data": False,
                 "resource_type": "none",
+                "search_query": "",
             }
 
-        user_message = messages[-1].get("content", "")
+        user_message = ""
 
-        if not isinstance(user_message, str) or not user_message.strip():
+        for message in reversed(messages):
+            if message.get("role") != "user":
+                continue
+
+            content = message.get("content", "")
+
+            if isinstance(content, str) and content.strip():
+                user_message = content
+                break
+
+        if not user_message:
             return {
                 "requires_org_data": False,
                 "resource_type": "none",
+                "search_query": "",
             }
 
         response = await self.llama_client.chat(
@@ -88,6 +110,7 @@ class OrgDataAnalyzer:
                 return {
                     "requires_org_data": False,
                     "resource_type": "none",
+                    "search_query": "",
                 }
 
             try:
@@ -96,6 +119,7 @@ class OrgDataAnalyzer:
                 return {
                     "requires_org_data": False,
                     "resource_type": "none",
+                    "search_query": "",
                 }
 
         allowed_types = {
@@ -111,12 +135,25 @@ class OrgDataAnalyzer:
         if resource_type not in allowed_types:
             resource_type = "none"
 
+        search_query = result.get("search_query", "")
+
+        if not isinstance(search_query, str):
+            search_query = ""
+
+        search_query = search_query.strip()
+
         requires_org_data = (
             result.get("requires_org_data") is True
             and resource_type != "none"
+            and bool(search_query)
         )
+
+        if not requires_org_data:
+            resource_type = "none"
+            search_query = ""
 
         return {
             "requires_org_data": requires_org_data,
             "resource_type": resource_type,
+            "search_query": search_query,
         }
